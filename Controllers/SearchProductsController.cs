@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MockShoppingPriceComparisonApp2._0.Models;
 using MockShoppingPriceComparisonApp2._0.Services;
@@ -15,8 +16,13 @@ namespace MockShoppingPriceComparisonApp2._0.Controllers
     {
         MockShoppingPriceApp20Context _context = new MockShoppingPriceApp20Context();
         Services_ services_ = new Services_();
+
+
+        // search product by id
         [HttpGet]
         [Route("api/searchproductbyid/{id}")]
+        [Authorize(Roles ="admin,customer")]
+        
         public IActionResult searchproductbyid(int id)
         {
             try
@@ -37,14 +43,17 @@ namespace MockShoppingPriceComparisonApp2._0.Controllers
             }    
         }
 
+        //searchproduct by name
+
         [HttpGet]
-        [Route("api/searchproductbyname")]
-        public IActionResult searchproductbyname([FromBody] string productname)
+        [Route("api/searchproductbyname/{productname}")]
+       // [Authorize]
+        public IActionResult searchproductbyname(string productname)
         {
             try
             {
                 var _product = _context.Products.Where(x => x.ProductName.ToLower().Contains(productname.ToLower()));
-                if (_product != null)
+                if (_product != null )
                 {
                     return Ok(_product);
                 }
@@ -58,9 +67,5 @@ namespace MockShoppingPriceComparisonApp2._0.Controllers
                 return BadRequest(e.Message);
             }
         }
-
-
-
-
     }
 }

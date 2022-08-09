@@ -25,7 +25,7 @@ namespace MockShoppingPriceComparisonApp2._0.Models
         [Required]
         [Column("Product_Name")]
         public string ProductName { get; set; }
-        [Required]
+       // [Required]
         [Column("Product_Image")]
         public string ProductImage { get; set; }
         [Column("Brand_Id")]

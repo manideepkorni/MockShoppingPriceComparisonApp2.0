@@ -46,7 +46,7 @@ namespace MockShoppingPriceComparisonApp2._0
                    opt.SaveToken = true;
                    opt.RequireHttpsMetadata = false;
                });
-            services.AddControllers();
+            services.AddControllers().AddNewtonsoftJson();
 
             services.AddCors();
             services.AddDbContextPool<MockShoppingPriceApp20Context>(opt => opt.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));

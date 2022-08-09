@@ -1,20 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
 using MockShoppingPriceComparisonApp2._0.Models;
-
-
+using System;
+using System.Text;
 
 namespace MockShoppingPriceComparisonApp2._0.Services
 {
     public class Services_
     {
         MockShoppingPriceApp20Context _context = new MockShoppingPriceApp20Context();
+      //  private IConfiguration Configuration;
+      
         public class inputproductids
         {
             public int productid1 { get; set; }
-
             public int productid2 { get; set; }
             public int productid3 { get; set; }
             public int productid4 { get; set; }
@@ -26,7 +27,7 @@ namespace MockShoppingPriceComparisonApp2._0.Services
         {
             public int ProductId { get; set; }
             public string ProductName { get; set; }
-
+            public string ProductImage { get; set; }
             public string BrandName { get; set; }
             public string CategoryName { get; set; }
             public double ProductPrice { get; set; }
@@ -44,6 +45,7 @@ namespace MockShoppingPriceComparisonApp2._0.Services
             public string SpecificationValue { get; set; }
 
         }
+       
 
         //check user name
         public bool CheckUsername(string username)
@@ -102,8 +104,6 @@ namespace MockShoppingPriceComparisonApp2._0.Services
             List<specifications> _specifications = new List<specifications>();
             _specifications = getproductspecifications(productid);
 
-
-
             return new product
             {   ProductId = _product.ProductId,
                 ProductName = _product.ProductName,
@@ -112,7 +112,8 @@ namespace MockShoppingPriceComparisonApp2._0.Services
                 ProductPrice = _product.ProductPrice,
                 ProductRating = _product.ProductRating,
                 ProductAvailability= _product.ProductAvailability,
-                Specifications = _specifications
+                Specifications = _specifications,
+                ProductImage = _product.ProductImage
             };
 
         }
@@ -136,14 +137,119 @@ namespace MockShoppingPriceComparisonApp2._0.Services
             return productspecifications;
         
         }
-
-        public bool CheckSameCategory(inputproductids productids)
+        public static string key = "psiogdigital"; 
+        public string encryptPassword(string password)
         {
-            if (_context.Products.FirstOrDefault(x => x.ProductId == productids.productid1) == (_context.Products.FirstOrDefault(x => x.ProductId == productids.productid2)))
-                return true;
-            return false;
+            if (string.IsNullOrEmpty(password)) return "";
+            password += key;
+            var passwordBytes = Encoding.UTF8.GetBytes(password);
+            return Convert.ToBase64String(passwordBytes);
+        
+        }
+
+
+        public string decryptPassword(string base64EncodeData)
+        {
+            if (string.IsNullOrEmpty(base64EncodeData)) return "";
+            var base64EncodeBytes = Convert.FromBase64String(base64EncodeData);
+            var result = Encoding.UTF8.GetString(base64EncodeBytes);
+            result = result.Substring(0, result.Length - key.Length);
+            return result;
+        
+        }
+
+        public List<int> top5Products()
+        {
+
+            try
+            {
+                Dictionary<int, int> top5Products = new Dictionary<int, int>();
+                List<Comparison> _comparisonRecords = _context.Comparison.ToList();
+                for (int i = 0; i < _comparisonRecords.Count(); i++)
+                {
+                    if (_comparisonRecords[i].ProductId1 != null)
+                    {
+                        if (top5Products.Keys.Contains(_comparisonRecords[i].ProductId1))
+                        {
+                            top5Products[_comparisonRecords[i].ProductId1] += 1;
+                        }
+                        else
+                        {
+                            top5Products.Add(_comparisonRecords[i].ProductId1, 1);
+                        }
+                    
+                    }
+                    if (_comparisonRecords[i].ProductId2 != null)
+                    {
+                        if (top5Products.Keys.Contains(_comparisonRecords[i].ProductId2))
+                        {
+                            top5Products[_comparisonRecords[i].ProductId2] += 1;
+                        }
+                        else
+                        {
+                            top5Products.Add(_comparisonRecords[i].ProductId2, 1);
+                        }
+                    
+                    }
+                    if (_comparisonRecords[i].ProductId3 != null)
+                    {
+                        if (top5Products.Keys.Contains(Convert.ToInt32(_comparisonRecords[i].ProductId3)))
+                        {
+                            top5Products[Convert.ToInt32(_comparisonRecords[i].ProductId3)] += 1;
+                        }
+                        else
+                        {
+                            top5Products.Add(Convert.ToInt32(_comparisonRecords[i].ProductId3), 1);
+                        }
+                    
+                    } if (_comparisonRecords[i].ProductId4 != null)
+                    {
+                        if (top5Products.Keys.Contains(Convert.ToInt32(_comparisonRecords[i].ProductId4)))
+                        {
+                            top5Products[Convert.ToInt32(_comparisonRecords[i].ProductId4)] += 1;
+                        }
+                        else
+                        {
+                            top5Products.Add(Convert.ToInt32(_comparisonRecords[i].ProductId4), 1);
+                        }
+                    
+                    }
+                }
+
+                top5Products = top5Products.OrderByDescending(x => x.Value).ToDictionary(x => x.Key, x => x.Value);
+
+
+                List<int> top5ids = new List<int>();
+                int _count = 0;
+                foreach (KeyValuePair<int, int> ids in top5Products)
+                {
+                    if (_count >= 5)
+                    {
+                        _count = 0;
+                        break;
+                    }
+                    else
+                    {
+                        top5ids.Add(ids.Key);
+                        _count++;
+
+                    }
+                
+                }
+                return top5ids;
+
+
+            }
+            catch (Exception e)
+            {
+                return null;
+            }
+
+
 
         }
+
+
 
 
 
